@@ -61,24 +61,53 @@ Theta2_grad = zeros(size(Theta2));
 %               the regularization separately and then add them to Theta1_grad
 %               and Theta2_grad from Part 2.
 %
+A1 = [ones(size(X, 1), 1) X];
+Z2 = A1 * Theta1';
+A2 = sigmoid(Z2);
+A2 = [ones(size(A2, 1), 1), A2];
+Z3 = A2 * Theta2';
+H = sigmoid(Z3);
+E = eye(num_labels);
+Y = zeros(m ,num_labels);
+for v=1:size(y,1)
+    if y(v)==0
+        Y(v, 10) = 1;
+    else
+        Y(v, y(v)) = 1;
+    end
+end
+for i=1:m
+    for k=1:num_labels
+        J = J + (1/m)*(-Y(i,k)*log(H(i,k)) - (1-Y(i,k))*log(1-H(i,k)));
+    end
+end
 
+J = J + (lambda/(2*m))*(sum(sum(Theta1(:, 2:end).^2))+sum(sum(Theta2(:, 2:end).^2)));
 
+Delta_1 = zeros(size(Theta1));
+Delta_2 = zeros(size(Theta2));
+% backpropagation algorithm
+for t=1:m
+    % step 1
+    a_1 = [1; X(t, :)'];
+    z_2 = Theta1 * a_1;
+    a_2 = [1; sigmoid(z_2)];
+    z_3 = Theta2 * a_2;
+    a_3 = sigmoid(z_3);
+    % step 2
+    delta_3 = a_3 - Y(t, :)';
+    % step 3
+    delta_2 = Theta2(:, 2:end)' * delta_3 .* sigmoidGradient(z_2);
+    % step 4
+    Delta_1 = Delta_1 + delta_2 * a_1';
+    Delta_2 = Delta_2 + delta_3 * a_2'; 
+    % step 5
+    Theta1_grad = (1/m) * Delta_1;
+    Theta2_grad = (1/m) * Delta_2;
+end
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+Theta1_grad(:, 2:end) = Theta1_grad(:, 2:end) + (lambda / m) * Theta1(:, 2:end);
+Theta2_grad(:, 2:end) = Theta2_grad(:, 2:end) + (lambda / m) * Theta2(:, 2:end);
 
 % -------------------------------------------------------------
 
